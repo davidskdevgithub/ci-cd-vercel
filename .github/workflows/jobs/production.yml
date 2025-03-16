@@ -1,7 +1,10 @@
-name: Deploy Production Environment
-
+name: Deploy to Production
 on:
   workflow_call:
+    inputs:
+      artifact-name:
+        required: true
+        type: string
     secrets:
       VERCEL_TOKEN:
         required: true
@@ -11,7 +14,7 @@ on:
         required: true
 
 jobs:
-  deploy-production:
+  production:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
@@ -26,9 +29,16 @@ jobs:
         uses: pnpm/action-setup@v2
         with:
           version: 8
+          run_install: false
 
       - name: Install dependencies
         run: pnpm install
+
+      - name: Download build artifact
+        uses: actions/download-artifact@v3
+        with:
+          name: ${{ inputs.artifact-name }}
+          path: .next
 
       - name: Deploy to Vercel (Production)
         uses: amondnet/vercel-action@v25

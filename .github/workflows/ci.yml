@@ -1,0 +1,36 @@
+name: Continuous Integration
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+permissions:
+  contents: read
+
+jobs:
+  setup:
+    name: Setup Environment
+    uses: ./.github/workflows/jobs/setup.yml
+
+  lint:
+    name: Lint Code
+    needs: setup
+    uses: ./.github/workflows/jobs/lint.yml
+    with:
+      cache-key: ${{ needs.setup.outputs.cache-key }}
+
+  unit-test:
+    name: Unit Tests
+    needs: setup
+    uses: ./.github/workflows/jobs/unit-test.yml
+    with:
+      cache-key: ${{ needs.setup.outputs.cache-key }}
+
+  build:
+    name: Build Application
+    needs: [lint, unit-test]
+    uses: ./.github/workflows/jobs/build.yml
+    with:
+      cache-key: ${{ needs.setup.outputs.cache-key }}

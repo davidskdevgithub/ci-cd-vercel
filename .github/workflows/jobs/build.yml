@@ -1,11 +1,21 @@
-name: Build Next.js Application
+name: Build Application
 
 on:
   workflow_call:
+    inputs:
+      cache-key:
+        required: true
+        type: string
+    outputs:
+      artifact-name:
+        description: "Name of the build artifact"
+        value: ${{ jobs.build.outputs.artifact-name }}
 
 jobs:
   build:
     runs-on: ubuntu-latest
+    outputs:
+      artifact-name: "build-output"
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -19,15 +29,19 @@ jobs:
         uses: pnpm/action-setup@v2
         with:
           version: 8
+          run_install: false
 
-      - name: Install dependencies
-        run: pnpm install
+      - name: Restore node_modules
+        uses: actions/cache@v3
+        with:
+          path: node_modules
+          key: ${{ inputs.cache-key }}
 
       - name: Build application
         run: pnpm build
 
       - name: Upload build artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v3
         with:
           name: build-output
           path: .next
