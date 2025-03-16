@@ -1,5 +1,14 @@
 This is a [Next.js](https://nextjs.org/) project bootstrapped with [`create-next-app`](https://github.com/vercel/next.js/tree/canary/packages/create-next-app).
 
+## Checks
+- Config
+  - [x] Next.js
+  - [x] Typescript
+  - [x] Tailwind
+  - [x] ESLint
+  - [x] CI/CD
+
+
 ## Getting Started
 
 First, run the development server:
