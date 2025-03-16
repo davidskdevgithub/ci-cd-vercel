@@ -63,7 +63,7 @@ jobs:
     name: Deploy Preview
     needs: [initialize, download-artifacts]
     if: ${{ needs.initialize.outputs.is_pr == 'true' }}
-    uses: ./.github/workflows/jobs/preview.yml
+    uses: ./.github/workflows/preview.yml
     with:
       artifact-name: cd-build-output
     secrets:
@@ -75,7 +75,7 @@ jobs:
     name: Comment PR
     needs: [initialize, preview-deploy]
     if: ${{ needs.initialize.outputs.is_pr == 'true' }}
-    uses: ./.github/workflows/jobs/comment-pr.yml
+    uses: ./.github/workflows/comment-pr.yml
     with:
       preview_url: ${{ needs.preview-deploy.outputs.preview_url }}
 
@@ -83,7 +83,7 @@ jobs:
     name: E2E Tests
     needs: [initialize, preview-deploy]
     if: ${{ needs.initialize.outputs.is_pr == 'true' }}
-    uses: ./.github/workflows/jobs/e2e-test.yml
+    uses: ./.github/workflows/e2e-test.yml
     with:
       preview_url: ${{ needs.preview-deploy.outputs.preview_url }}
 
@@ -91,7 +91,7 @@ jobs:
     name: Deploy Production
     needs: [initialize, download-artifacts]
     if: ${{ needs.initialize.outputs.is_pr == 'false' }}
-    uses: ./.github/workflows/jobs/production.yml
+    uses: ./.github/workflows/production.yml
     with:
       artifact-name: cd-build-output
     secrets:
