@@ -20,7 +20,16 @@ jobs:
 
       - name: Calculate cache key
         id: set-cache-key
-        run: echo "cache-key=${{ runner.os }}-node-modules-$(sha256sum **/pnpm-lock.yaml | cut -d ' ' -f 1)" >> $GITHUB_OUTPUT
+        run: |
+          if [ -f "pnpm-lock.yaml" ]; then
+            HASH=$(sha256sum pnpm-lock.yaml | cut -d ' ' -f 1)
+          else
+            HASH="default-hash"
+          fi
+          echo "cache-key=${{ runner.os }}-node-modules-${HASH}" >> $GITHUB_OUTPUT
+
+      - name: Debug cache key
+        run: echo "Cache key = ${{ steps.set-cache-key.outputs.cache-key }}"
 
       - name: Setup Node.js
         uses: actions/setup-node@v4
@@ -55,7 +64,7 @@ jobs:
         id: node-modules-cache
         with:
           path: node_modules
-          key: ${{ runner.os }}-node-modules-${{ hashFiles('**/pnpm-lock.yaml') }}
+          key: ${{ steps.set-cache-key.outputs.cache-key }}
 
   lint:
     name: Lint Code
