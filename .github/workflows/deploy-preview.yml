@@ -1,0 +1,52 @@
+name: Deploy Preview Environment
+
+on:
+  workflow_call:
+    inputs:
+      ref:
+        required: true
+        type: string
+        description: "The git ref to deploy"
+    secrets:
+      VERCEL_TOKEN:
+        required: true
+      VERCEL_ORG_ID:
+        required: true
+      VERCEL_PROJECT_ID:
+        required: true
+
+jobs:
+  deploy-preview:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.ref }}
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v2
+        with:
+          version: 8
+
+      - name: Install dependencies
+        run: pnpm install
+
+      - name: Deploy to Vercel (Preview)
+        uses: amondnet/vercel-action@v25
+        id: deploy-preview
+        with:
+          vercel-token: ${{ secrets.VERCEL_TOKEN }}
+          vercel-org-id: ${{ secrets.VERCEL_ORG_ID }}
+          vercel-project-id: ${{ secrets.VERCEL_PROJECT_ID }}
+          working-directory: ./
+          vercel-args: '--confirm'
+
+      - name: Output preview URL
+        id: output
+        run: echo "preview_url=${{ steps.deploy-preview.outputs.preview-url }}" >> $GITHUB_OUTPUT
