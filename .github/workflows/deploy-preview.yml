@@ -14,10 +14,19 @@ on:
         required: true
       VERCEL_PROJECT_ID:
         required: true
+    outputs:
+      preview_url:
+        description: "Preview deployment URL"
+        value: ${{ jobs.deploy-preview.outputs.preview_url }}
+
+permissions:
+  contents: read
 
 jobs:
   deploy-preview:
     runs-on: ubuntu-latest
+    outputs:
+      preview_url: ${{ steps.deploy-preview.outputs.preview-url }}
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -47,6 +56,5 @@ jobs:
           working-directory: ./
           vercel-args: '--confirm'
 
-      - name: Output preview URL
-        id: output
-        run: echo "preview_url=${{ steps.deploy-preview.outputs.preview-url }}" >> $GITHUB_OUTPUT
+      - name: Echo preview URL
+        run: echo "Preview URL is ${{ steps.deploy-preview.outputs.preview-url }}"

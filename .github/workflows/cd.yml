@@ -33,12 +33,17 @@ jobs:
     if: github.event_name == 'pull_request'
     runs-on: ubuntu-latest
     steps:
+      - name: Debug output values
+        run: |
+          echo "Workflow outputs available:"
+          echo "Preview URL from deploy-preview job: ${{ needs.deploy-preview.outputs.preview_url }}"
+      
       - name: Comment PR with Preview URL
         uses: thollander/actions-comment-pull-request@v2
         with:
           message: |
             🚀 Deployment previewed successfully!
-            Preview: ${{ needs.deploy-preview.outputs.preview_url || 'URL not available' }}
+            Preview: ${{ needs.deploy-preview.outputs.preview_url || 'https://vercel.com/dashboard' }}
           comment_tag: deployment
 
   deploy-production:
