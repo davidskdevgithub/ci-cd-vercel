@@ -89,19 +89,29 @@ jobs:
           working-directory: ./
           vercel-args: '--confirm'
 
+      - name: Debug Outputs
+        run: |
+          echo "All step outputs from deploy-preview:"
+          echo '${{ toJSON(steps.deploy-preview.outputs) }}'
+        if: always()
+
   comment-pr:
     name: Comment PR
     needs: [initialize, preview-deploy]
     if: ${{ needs.initialize.outputs.is_pr == 'true' }}
     runs-on: ubuntu-latest
     steps:
+      - name: Debug Preview URL
+        run: |
+          echo "Preview URL: ${{ toJSON(needs.preview-deploy.outputs) }}"
+        if: always()
+
       - name: Comment PR with Preview URL
         uses: thollander/actions-comment-pull-request@v2
         with:
-          GITHUB_TOKEN: ${{ github.token }}
           message: |
             🚀 Deployment previewed successfully!
-            Preview: ${{ needs.deploy-preview.outputs.preview_url }}
+            Preview: ${{ needs.preview-deploy.outputs.preview_url || 'https://vercel.com/dashboard' }}
           comment_tag: deployment
           pr_number: ${{ needs.initialize.outputs.pr_number }}
 
