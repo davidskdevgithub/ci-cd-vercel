@@ -88,7 +88,7 @@ jobs:
                   
   preview-deploy:
     name: Deploy Preview
-    needs: [initialize, download-artifacts]
+    needs: [initialize, prepare-build]
     if: ${{ needs.initialize.outputs.is_pr == 'true' }}
     uses: ./.github/workflows/preview.yml
     with:
@@ -116,7 +116,7 @@ jobs:
 
   production-deploy:
     name: Deploy Production
-    needs: [initialize, download-artifacts]
+    needs: [initialize, prepare-build]
     if: ${{ needs.initialize.outputs.is_pr == 'false' }}
     uses: ./.github/workflows/production.yml
     with:
