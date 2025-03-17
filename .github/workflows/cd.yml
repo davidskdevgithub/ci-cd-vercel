@@ -43,24 +43,65 @@ jobs:
     needs: initialize
     runs-on: ubuntu-latest
     steps:
-      - name: Download artifact
-        uses: dawidd6/action-download-artifact@v2
+      - name: List available artifacts
+        uses: actions/github-script@v6
         with:
-          workflow: ci.yml
-          workflow_conclusion: success
-          commit: ${{ needs.initialize.outputs.commit_sha }}
-          name: build-output
-          path: .next
-          github_token: ${{ github.token }}
-          repository: ${{ github.repository }}
-      
+          script: |
+            const artifacts = await github.rest.actions.listWorkflowRunArtifacts({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              run_id: ${{ github.event.workflow_run.id }}
+            });
+            
+            console.log('Available artifacts:');
+            for (const artifact of artifacts.data.artifacts) {
+              console.log(`- ${artifact.name} (ID: ${artifact.id})`);
+            }
+            
+            const matchArtifact = artifacts.data.artifacts.find(
+              artifact => artifact.name === "build-output"
+            );
+            
+            if (!matchArtifact) {
+              core.setFailed('No artifact found with name "build-output"');
+              return;
+            }
+            
+            core.setOutput('artifact-id', matchArtifact.id);
+
+      - name: Download artifact
+        if: steps.list-artifacts.outputs.artifact-id
+        uses: actions/github-script@v6
+        id: download-artifact
+        with:
+          script: |
+            const fs = require('fs');
+            const artifactId = ${{ steps.list-artifacts.outputs.artifact-id }};
+            
+            const download = await github.rest.actions.downloadArtifact({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              artifact_id: artifactId,
+              archive_format: 'zip'
+            });
+
+            fs.writeFileSync('artifact.zip', Buffer.from(download.data));
+            return true;
+            
+      - name: Unzip artifact
+        if: steps.download-artifact.outputs.result
+        run: |
+          mkdir -p .next
+          unzip artifact.zip -d .next
+          
       - name: Upload artifact for this workflow
+        if: steps.download-artifact.outputs.result
         uses: actions/upload-artifact@v4
         with:
           name: cd-build-output
           path: .next
           retention-days: 1
-
+          
   preview-deploy:
     name: Deploy Preview
     needs: [initialize, download-artifacts]
