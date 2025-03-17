@@ -51,6 +51,8 @@ jobs:
           commit: ${{ needs.initialize.outputs.commit_sha }}
           name: build-output
           path: .next
+          github_token: ${{ github.token }}
+          repository: ${{ github.repository }}
       
       - name: Upload artifact for this workflow
         uses: actions/upload-artifact@v4
