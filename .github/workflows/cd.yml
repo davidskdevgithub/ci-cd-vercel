@@ -145,8 +145,8 @@ jobs:
       - name: Install dependencies
         run: pnpm install
 
-      - name: Install Playwright browsers
-        run: pnpm exec playwright install --with-deps
+      # - name: Install Playwright browsers
+      #   run: pnpm exec playwright install --with-deps
 
       - name: Run E2E tests against preview
         env:
@@ -241,8 +241,8 @@ jobs:
       - name: Install dependencies
         run: pnpm install
 
-      - name: Install Playwright browsers
-        run: pnpm exec playwright install --with-deps
+      # - name: Install Playwright browsers
+      #   run: pnpm exec playwright install --with-deps
 
       - name: Run E2E tests against production
         # env:
