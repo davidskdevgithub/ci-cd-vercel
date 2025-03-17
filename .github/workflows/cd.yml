@@ -39,69 +39,53 @@ jobs:
             echo "pr_number=0" >> $GITHUB_OUTPUT
           fi
 
-  download-artifacts:
+  prepare-build:
     needs: initialize
     runs-on: ubuntu-latest
     steps:
-      - name: List available artifacts
-        uses: actions/github-script@v6
+      - name: Checkout code
+        uses: actions/checkout@v4
         with:
-          script: |
-            const artifacts = await github.rest.actions.listWorkflowRunArtifacts({
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              run_id: ${{ github.event.workflow_run.id }}
-            });
-            
-            console.log('Available artifacts:');
-            for (const artifact of artifacts.data.artifacts) {
-              console.log(`- ${artifact.name} (ID: ${artifact.id})`);
-            }
-            
-            const matchArtifact = artifacts.data.artifacts.find(
-              artifact => artifact.name === "build-output"
-            );
-            
-            if (!matchArtifact) {
-              core.setFailed('No artifact found with name "build-output"');
-              return;
-            }
-            
-            core.setOutput('artifact-id', matchArtifact.id);
+          ref: ${{ needs.initialize.outputs.commit_sha }}
 
-      - name: Download artifact
-        if: steps.list-artifacts.outputs.artifact-id
-        uses: actions/github-script@v6
-        id: download-artifact
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
         with:
-          script: |
-            const fs = require('fs');
-            const artifactId = ${{ steps.list-artifacts.outputs.artifact-id }};
-            
-            const download = await github.rest.actions.downloadArtifact({
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              artifact_id: artifactId,
-              archive_format: 'zip'
-            });
+          node-version: '20'
 
-            fs.writeFileSync('artifact.zip', Buffer.from(download.data));
-            return true;
-            
-      - name: Unzip artifact
-        if: steps.download-artifact.outputs.result
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v2
+        with:
+          version: 8
+          run_install: false
+
+      - name: Get pnpm store directory
+        id: pnpm-cache
+        shell: bash
         run: |
-          mkdir -p .next
-          unzip artifact.zip -d .next
-          
+          echo "STORE_PATH=$(pnpm store path)" >> $GITHUB_OUTPUT
+
+      - name: Setup pnpm cache
+        uses: actions/cache@v3
+        with:
+          path: ${{ steps.pnpm-cache.outputs.STORE_PATH }}
+          key: ${{ runner.os }}-pnpm-store-${{ hashFiles('**/pnpm-lock.yaml') }}
+          restore-keys: |
+            ${{ runner.os }}-pnpm-store-
+
+      - name: Install dependencies
+        run: pnpm install
+        
+      - name: Build application
+        run: pnpm build
+        
       - name: Upload artifact for this workflow
-        if: steps.download-artifact.outputs.result
         uses: actions/upload-artifact@v4
         with:
           name: cd-build-output
           path: .next
           retention-days: 1
-          
+                  
   preview-deploy:
     name: Deploy Preview
     needs: [initialize, download-artifacts]
