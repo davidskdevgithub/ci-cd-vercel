@@ -86,3 +86,21 @@ jobs:
     uses: ./.github/workflows/build.yml
     with:
       cache-key: ${{ needs.setup.outputs.cache-key }}
+
+  upload-artifact:
+    name: Upload Build Artifact
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - name: Download artifact from build job
+        uses: actions/download-artifact@v4
+        with:
+          name: build-output
+          path: .next
+
+      - name: Upload artifact for CD workflow
+        uses: actions/upload-artifact@v4
+        with:
+          name: ci-build-output
+          path: .next
+          retention-days: 1
