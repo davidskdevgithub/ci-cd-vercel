@@ -7,8 +7,6 @@ This is a [Next.js](https://nextjs.org/) project bootstrapped with [`create-next
   - [x] Tailwind
   - [x] ESLint
   - [x] CI/CD
-  - [x] Split CD
-  - [x] Split CI
 
 
 ## Getting Started
