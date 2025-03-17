@@ -82,7 +82,7 @@ jobs:
 
   build:
     name: Build Application
-    needs: [lint, unit-test]
+    needs: [setup, lint, unit-test]
     uses: ./.github/workflows/build.yml
     with:
       cache-key: ${{ needs.setup.outputs.cache-key }}
